@@ -1,5 +1,7 @@
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xlg:grid-cols-4 gap-4"
+  >
     <div
       v-for="cat in cats"
       :key="cat.id"
@@ -23,6 +25,9 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import { useCatsStore } from "~/store/cats";
+
+const catsStore = useCatsStore();
 
 const props = defineProps({
   cats: {

@@ -5,48 +5,48 @@ export const useCatsStore = defineStore("cats", {
     return {
       data: [],
       loading: false,
-      currentPage: 0,
-      randomCat: null,
+      currentPage: 1,
       selectedCat: null,
+      sameBreedCats: [],
     };
   },
   actions: {
-    async fetchRandomCat() {
-      this.loading = true;
-      await $fetch("https://api.thecatapi.com/v1/images/search")
-        .then((data) => (this.randomCat = data[0]))
-        .catch((error) => console.error("Error fetching random cat:", error))
-        .finally(() => (this.loading = false));
-    },
-    async fetch(page = 0) {
+    async baseList(params) {
+      let cats;
       this.loading = true;
       await $fetch("https://api.thecatapi.com/v1/images/search", {
         query: {
           api_key: import.meta.env.VITE_CATS_API_KEY,
-          order: "DESC",
-          limit: 12,
-          page: this.currentPage,
+          ...params,
         },
       })
-        .then((data) => {
-          this.data = data;
-          this.currentPage = page;
-        })
-        .catch((error) => console.error("Error fetching random cat:", error))
+        .then((data) => (cats = data))
+        .catch((error) => console.error("Error fetching:", error))
         .finally(() => (this.loading = false));
+      return cats;
     },
-    async getDetailed(catId) {
+    async list() {
+      this.data = await this.baseList({
+        order: "DESC",
+        limit: 12,
+        page: this.currentPage - 1,
+      });
+    },
+    async get(catId) {
       this.loading = true;
-      try {
-        const data = await $fetch(
-          `https://api.thecatapi.com/v1/images/${catId}`
-        );
-        this.selectedCat = data;
-      } catch (error) {
-        console.error("Error fetching random cat:", error);
-      } finally {
-        this.loading = false;
-      }
+      await $fetch(`https://api.thecatapi.com/v1/images/${catId}`)
+        .then(async (data) => {
+          this.selectedCat = data;
+          if (data.breeds?.length) {
+            const breed_ids = data.breeds.reduce(
+              (val, b) => (val += b.id + ","),
+              ""
+            );
+            this.sameBreedCats = await this.baseList({ breed_ids, limit: 3 });
+          }
+        })
+        .catch((error) => console.error("Error fetching:", error))
+        .finally(() => (this.loading = false));
     },
   },
 });

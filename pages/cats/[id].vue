@@ -7,8 +7,6 @@
       >
         Back
       </button>
-
-      <h1 class="text-2xl font-bold">Cat details</h1>
     </div>
 
     <div v-if="catsStore.selectedCat" class="flex flex-col items-center">
@@ -31,21 +29,29 @@
       </p>
     </div>
 
-    <div v-else>
-      <p>Loading...</p>
+    <div v-else class="flex items-center">Loading...</div>
+
+    <div class="flex flex-col items-center mt-4">
+      <div v-if="!catsStore.loading">
+        <CatGrid
+          v-if="catsStore.sameBreedCats.length"
+          :cats="catsStore.sameBreedCats"
+          :grid="3"
+        />
+        <div v-else class="flex items-center">No same breed cats</div>
+      </div>
+      <div v-else class="flex items-center">Loading...</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive } from "vue";
-import { useRoute } from "vue-router";
 import { useCatsStore } from "~/store/cats";
 
 const catId = useRoute().params.id;
 
 const catsStore = useCatsStore();
-catsStore.getDetailed(catId);
+catsStore.get(catId);
 
 function goBack() {
   catsStore.selectedCat = null;
